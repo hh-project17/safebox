@@ -1,5 +1,7 @@
 package ru.hh.safebox.util;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import ru.hh.safebox.web.Response;
 
 import java.io.BufferedReader;
@@ -14,7 +16,10 @@ import java.util.concurrent.TimeUnit;
 
 public class Util {
 
+    private static final Logger LOG = LoggerFactory.getLogger(Util.class);
+
     public static Response executeCommand(String command, long timeout) {
+        LOG.info("Command '{}' called", command);
         StringBuilder output = new StringBuilder();
         StringBuilder err = new StringBuilder();
         try {
@@ -37,7 +42,7 @@ public class Util {
 
             }
         } catch (IOException | InterruptedException e) {
-            e.printStackTrace(); //todo log
+            LOG.error("Error while executing command = {}", command, e);
         }
 
         return new Response(output.toString(), err.toString());
@@ -59,9 +64,9 @@ public class Util {
                 }
             });
         } catch (IOException e) {
-            e.printStackTrace();//todo log this!
+            LOG.error("Can't delete something in dir {}", tempDir, e);
         }
-
+        LOG.info("Directory {} deleted", tempDir);
     }
 
 }

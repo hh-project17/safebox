@@ -1,13 +1,18 @@
 package ru.hh.safebox.app;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import ru.hh.safebox.config.Settings;
 import ru.hh.safebox.util.Util;
 import ru.hh.safebox.web.Response;
 
 import java.io.IOException;
 import java.nio.file.*;
+import java.util.concurrent.ThreadLocalRandom;
 
 public class Sandbox {
+
+    private static final Logger LOG = LoggerFactory.getLogger(Sandbox.class);
 
     private final Settings settings;
     private final Path tempDir;
@@ -16,13 +21,15 @@ public class Sandbox {
     private final String code;
     private final String userInput;
 
-    public Sandbox(Settings settings, Path tempDir, Integer compilerType, String code, String userInput) {
+    public Sandbox(Settings settings, Integer compilerType, String code, String userInput) {
         this.settings = settings;
-        this.tempDir = tempDir;
+        this.tempDir = getTempDir();
 
         this.language = Language.values()[compilerType];
         this.code = code;
         this.userInput = userInput;
+        LOG.info("Created sandbox with parameters [compiler : {}; code : {}; userInput : {}; tempDir : {}]",
+                language, code, userInput, tempDir);
     }
 
     public Response run() {
@@ -31,6 +38,7 @@ public class Sandbox {
         Response response = Util.executeCommand(String.format("docker run --rm -v %s:/sharedDir %s /sharedDir/run.sh %s %s %s",
                 tempDir.toAbsolutePath(), settings.imageName, language.getCompiler(), language.getFileName(), language.getRunner()),
                 settings.timeout);
+        LOG.info("Produced response {}", response);
 
         Util.deleteDirectory(tempDir);
         return response;
@@ -41,7 +49,8 @@ public class Sandbox {
             Files.createDirectories(tempDir);
 
             Files.write(tempDir.resolve(language.getFileName()),
-                    (code.replace("public class", "class") + System.lineSeparator()).getBytes(),
+                    //to avoid compilation error (publicClassName != fileName)
+                    code.replace("public class", "class").getBytes(),
                     StandardOpenOption.CREATE_NEW);
 
             Files.write(tempDir.resolve("args"),
@@ -49,8 +58,9 @@ public class Sandbox {
                     StandardOpenOption.CREATE_NEW);
 
             copyScriptsToSharedDirectory();
+
         } catch (IOException e) {
-            e.printStackTrace(); //todo log
+            LOG.error("Error while preparing for code execution", e);
         }
 
     }
@@ -61,9 +71,16 @@ public class Sandbox {
                     try {
                         Files.copy(f, tempDir.resolve(f.getFileName()), StandardCopyOption.COPY_ATTRIBUTES);
                     } catch (IOException e) {
-                        e.printStackTrace(); //todo log this
+                        LOG.error("Can't copy file {} to dir {}", f, tempDir, e);
                     }
                 });
+    }
+
+    private Path getTempDir() {
+        ThreadLocalRandom random = ThreadLocalRandom.current();
+        return Paths.get("temp")
+                .resolve(String.valueOf(random.nextDouble())
+                        .replace(".", ""));
     }
 
 }
