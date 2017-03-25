@@ -45,7 +45,7 @@ public class Util {
             LOG.error("Error while executing command = {}", command, e);
         }
 
-        return new Response(output.toString(), err.toString());
+        return new Response(output.toString().trim(), err.toString().trim());
     }
 
     public static void deleteDirectory(Path tempDir) {
