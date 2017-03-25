@@ -1,17 +1,15 @@
 package ru.hh.safebox.config;
 
-import java.util.Properties;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
 
+@Component
 public class Settings {
 
-    private Properties settings;
+    @Value("${timeout}")
+    public Long timeout;
 
-    public Settings(Properties settings) {
-        this.settings = settings;
-    }
-
-    public long timeout() {
-        return Long.parseLong(settings.getProperty("timeout"));
-    }
+    @Value("${imageName}")
+    public String imageName;
 
 }
