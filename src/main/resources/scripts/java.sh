@@ -1,6 +1,5 @@
-#!/usr/bin/env sh
-
-#	http://stackoverflow.com/a/8870863
+#!/bin/bash
+#http://stackoverflow.com/a/8870863
 
 cd /sharedDir/ || exit
 
