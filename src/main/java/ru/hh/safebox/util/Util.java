@@ -22,9 +22,10 @@ public class Util {
         LOG.info("Command '{}' called", command);
         StringBuilder output = new StringBuilder();
         StringBuilder err = new StringBuilder();
+        boolean finished = false;
         try {
             Process p = Runtime.getRuntime().exec(command);
-            p.waitFor(timeout, TimeUnit.MILLISECONDS);
+            finished = p.waitFor(timeout, TimeUnit.MILLISECONDS);
 
             try (BufferedReader stdOutReader =
                          new BufferedReader(new InputStreamReader(p.getInputStream()));
@@ -43,6 +44,10 @@ public class Util {
             }
         } catch (IOException | InterruptedException e) {
             LOG.error("Error while executing command = {}", command, e);
+        }
+
+        if (!finished) {
+            err.append("TimeOuted");
         }
 
         return new Response(output.toString().trim(), err.toString().trim());

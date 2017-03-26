@@ -8,6 +8,7 @@ import ru.hh.safebox.web.Response;
 
 import java.io.IOException;
 import java.nio.file.*;
+import java.util.Arrays;
 import java.util.concurrent.ThreadLocalRandom;
 
 public class Sandbox {
@@ -15,28 +16,29 @@ public class Sandbox {
     private static final Logger LOG = LoggerFactory.getLogger(Sandbox.class);
 
     private final Settings settings;
-    private final Path tempDir;
-
-    private final Language language;
+    private final ProgrammingLang programmingLang;
     private final String code;
     private final String userInput;
 
+    private final Path tempDir;
+
     public Sandbox(Settings settings, Integer compilerType, String code, String userInput) {
         this.settings = settings;
-        this.tempDir = getTempDir();
-
-        this.language = Language.values()[compilerType];
+        this.programmingLang = getProgrammingLang(compilerType);
         this.code = code;
         this.userInput = userInput;
+
+        this.tempDir = getTempDir();
+
         LOG.info("Created sandbox with parameters [compiler : {}; code : {}; userInput : {}; tempDir : {}]",
-                language, code, userInput, tempDir);
+                programmingLang, code, userInput, tempDir);
     }
 
     public Response run() {
         prepareForCodeExecution();
 
         Response response = Util.executeCommand(String.format("docker run --rm -v %s:/sharedDir %s /sharedDir/run.sh %s %s %s",
-                tempDir.toAbsolutePath(), settings.imageName, language.getCompiler(), language.getFileName(), language.getRunner()),
+                tempDir.toAbsolutePath(), settings.imageName, programmingLang.getCompiler(), programmingLang.getFileName(), programmingLang.getRunner()),
                 settings.timeout);
         LOG.info("Produced response {}", response);
 
@@ -48,7 +50,7 @@ public class Sandbox {
         try {
             Files.createDirectories(tempDir);
 
-            Files.write(tempDir.resolve(language.getFileName()),
+            Files.write(tempDir.resolve(programmingLang.getFileName()),
                     //to avoid compilation error (publicClassName != fileName)
                     code.replace("public class", "class").getBytes(),
                     StandardOpenOption.CREATE_NEW);
@@ -81,6 +83,15 @@ public class Sandbox {
         return Paths.get("temp")
                 .resolve(String.valueOf(random.nextDouble())
                         .replace(".", ""));
+    }
+
+    private ProgrammingLang getProgrammingLang(Integer compilerType) {
+        try {
+           return ProgrammingLang.values()[compilerType];
+        }catch (IndexOutOfBoundsException e){
+            throw new IllegalArgumentException("Not supported language. " +
+                    "You can choose from " + Arrays.asList(ProgrammingLang.values()),e);
+        }
     }
 
 }
