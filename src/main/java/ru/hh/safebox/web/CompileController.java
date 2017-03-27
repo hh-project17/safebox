@@ -1,12 +1,13 @@
 package ru.hh.safebox.web;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import ru.hh.safebox.app.Sandbox;
 import ru.hh.safebox.config.Settings;
 
-@RestController
-public class Controller {
+@Controller
+public class CompileController {
 
     @Autowired
     private Settings settings;
@@ -19,6 +20,12 @@ public class Controller {
 
         Sandbox box = new Sandbox(settings, compilerType, code, userInput);
         return box.run();
+    }
+
+    //for demo!
+    @GetMapping("/")
+    public String createForm() {
+        return "form";
     }
 
 }
