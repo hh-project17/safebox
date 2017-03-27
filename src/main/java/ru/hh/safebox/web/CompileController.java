@@ -6,7 +6,7 @@ import ru.hh.safebox.app.Sandbox;
 import ru.hh.safebox.config.Settings;
 
 @RestController
-public class Controller {
+public class CompileController {
 
     @Autowired
     private Settings settings;
