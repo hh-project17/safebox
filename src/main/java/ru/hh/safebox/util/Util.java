@@ -25,7 +25,12 @@ public class Util {
         boolean finished = false;
         try {
             Process p = Runtime.getRuntime().exec(command);
-            finished = p.waitFor(timeout, TimeUnit.MILLISECONDS);
+            if (timeout == -1) {
+                p.waitFor();
+                finished = true;
+            } else {
+                finished = p.waitFor(timeout, TimeUnit.MILLISECONDS);
+            }
 
             try (BufferedReader stdOutReader =
                          new BufferedReader(new InputStreamReader(p.getInputStream()));
@@ -33,11 +38,11 @@ public class Util {
                          new BufferedReader(new InputStreamReader(p.getErrorStream()))) {
 
                 String line;
-                while ((line = stdOutReader.readLine()) != null) {
+                while (finished && (line = stdOutReader.readLine()) != null) {
                     output.append(line).append(System.lineSeparator());
                 }
 
-                while ((line = stdErrReader.readLine()) != null) {
+                while (finished && (line = stdErrReader.readLine()) != null) {
                     err.append(line).append(System.lineSeparator());
                 }
 
@@ -51,6 +56,10 @@ public class Util {
         }
 
         return new Response(output.toString().trim(), err.toString().trim());
+    }
+
+    public static Response executeCommand(String command) {
+        return executeCommand(command, -1);
     }
 
     public static void deleteDirectory(Path tempDir) {

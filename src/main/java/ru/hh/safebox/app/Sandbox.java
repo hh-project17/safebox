@@ -37,9 +37,13 @@ public class Sandbox {
     public Response run() {
         prepareForCodeExecution();
 
-        Response response = Util.executeCommand(String.format("docker run --rm -v %s:/sharedDir %s /sharedDir/run.sh %s %s %s",
-                tempDir.toAbsolutePath(), settings.imageName, programmingLang.getCompiler(), programmingLang.getFileName(), programmingLang.getRunner()),
-                settings.timeout);
+        Response response = new DockerCmdBuilder(settings.imageName, tempDir.toAbsolutePath())
+                .startNewContainer()
+                .exec(String.format("/sharedDir/run.sh %s %s %s",
+                        programmingLang.getCompiler(), programmingLang.getFileName(), programmingLang.getRunner()),
+                        settings.timeout)
+                .finishAndKill();
+
         LOG.info("Produced response {}", response);
 
         Util.deleteDirectory(tempDir);
@@ -87,10 +91,10 @@ public class Sandbox {
 
     private ProgrammingLang getProgrammingLang(Integer compilerType) {
         try {
-           return ProgrammingLang.values()[compilerType];
-        }catch (IndexOutOfBoundsException e){
+            return ProgrammingLang.values()[compilerType];
+        } catch (IndexOutOfBoundsException e) {
             throw new IllegalArgumentException("Not supported language. " +
-                    "You can choose from " + Arrays.asList(ProgrammingLang.values()),e);
+                    "You can choose from " + Arrays.asList(ProgrammingLang.values()), e);
         }
     }
 

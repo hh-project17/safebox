@@ -1,61 +1,58 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Code : Send</title>
+    <title>Code Sender</title>
     <link rel="stylesheet" type="text/css" href="webjars/bootstrap/3.3.0/css/bootstrap.min.css"/>
     <script src="webjars/jquery/2.2.0/jquery.js"></script>
 </head>
 <body>
 <div class="container">
-    <h1>Code: Send</h1>
+    <h1>Code sender</h1>
     <form id="codeForm" action="/compile">
+        <span>Compiler (0-java, 1-python2, 2-python3):</span>
         <div class="row">
-            <label for="compilerType">compiler (0-java, 1-python2, 2-python3)</label>
             <input type="number" id="compilerType" name="compilerType"/>
         </div>
+        <span>User code:</span>
         <div class="row">
-            <label for="code">code</label>
             <textarea id="code" rows="15" cols="100"></textarea>
         </div>
+        <span>User input:</span>
         <div class="row">
-            <label for="userInput">input</label>
             <input type="text" id="userInput" name="userInput"/>
+            <input type="submit" value="Send"/>
         </div>
-        <input type="submit" value="Send"/>
+
     </form>
 
+
+    <span>StdOut:</span>
     <div class="row">
-        <label for="out">StdOut</label>
-        <textarea id="out" rows="4" cols="100"></textarea>
+        <textarea rows="4" cols="101"></textarea>
     </div>
+    <span>StdErr:</span>
     <div class="row">
-        <label for="err">StdErr</label>
-        <textarea id="err" rows="4" cols="100"></textarea>
+        <textarea id="err" rows="4" cols="101"></textarea>
     </div>
 </div>
 <script>
-// Attach a submit handler to the form
 $( "#codeForm" ).submit(function( event ) {
-
-  // Stop form from submitting normally
   event.preventDefault();
 
-  // Get some values from elements on the page:
   var $form = $( this ),
     compiler = $form.find( "input[name='compilerType']" ).val(),
     input = $form.find( "input[name='userInput']" ).val(),
     url = $form.attr( "action" );
 
     c = $( "#code" ).val();
-  // Send the data using post
   var posting = $.post( url, { compilerType: compiler, code: c, userInput: input} );
 
-  // Put the results in a div
   posting.done(function( data ) {
     $( "#out" ).empty().append( data.stdOut );
     $( "#err" ).empty().append( data.stdErr );
   });
 });
+
 </script>
 
 </body>
