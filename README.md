@@ -1,3 +1,6 @@
+[![Build Status](https://travis-ci.org/hh-project17/safebox.svg?branch=master)](https://travis-ci.org/hh-project17/safebox)
+[![codecov](https://codecov.io/gh/hh-project17/safebox/branch/master/graph/badge.svg)](https://codecov.io/gh/hh-project17/safebox)
+
 # SafeBox
 Веб-сервис для запуска кода (Java и Python) в песочнице
 
