@@ -1,0 +1,16 @@
+language: java
+
+services:
+  - docker
+
+before_install:
+  - docker build -t sandbox src/main/resources/docker
+
+script: "mvn cobertura:cobertura"
+
+after_success:
+  - bash <(curl -s https://codecov.io/bash)
+
+notifications:
+  slack: hh-school:ayUUF838rfCaPfvjGnQtV1ms
+
