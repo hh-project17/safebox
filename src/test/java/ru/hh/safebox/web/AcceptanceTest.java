@@ -1,6 +1,7 @@
 package ru.hh.safebox.web;
 
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -29,7 +30,8 @@ public class AcceptanceTest {
 
     @Before
     public void setUp() {
-        settings.timeout = 100_000L;
+        settings.defaultRam=900;
+        settings.defaultTimeout = 100_000L;
         settings.imageName = "sandbox";
     }
 
@@ -51,7 +53,7 @@ public class AcceptanceTest {
         this.mvc.perform(post("/compile")
                 .param("compilerType", "0")
                 .param("code", "import java.util.Scanner;\n" +
-                        "public class qwe {\n" +
+                        "public    class qwe {\n" +
                         "    public static void main(String[] args) {\n" +
                         "        Scanner r = new Scanner(System.in);\n" +
                         "        System.out.println(r.nextInt());\n" +
@@ -133,7 +135,7 @@ public class AcceptanceTest {
 
     @Test
     public void shouldEndWithTimeOut() throws Exception {
-        settings.timeout = 1000L;
+        settings.defaultTimeout = 1000L;
         this.mvc.perform(post("/compile")
                 .param("compilerType", "0")
                 .param("code", "class time {\n" +
@@ -143,6 +145,13 @@ public class AcceptanceTest {
                         "}"))
                 .andExpect(status().isOk())
                 .andExpect(content().string(containsString("\"stdErr\":\"TimeOuted\"}")));
+
+    }
+
+    @Ignore //todo need to complete
+    @Test
+    public void shouldEndWithOutOfMemmory() throws Exception {
+        settings.defaultRam=4;
 
     }
 

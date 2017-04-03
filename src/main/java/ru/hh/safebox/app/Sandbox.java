@@ -2,66 +2,54 @@ package ru.hh.safebox.app;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import ru.hh.safebox.config.Settings;
 import ru.hh.safebox.util.Util;
 import ru.hh.safebox.web.Response;
 
 import java.io.IOException;
 import java.nio.file.*;
 import java.util.Arrays;
-import java.util.concurrent.ThreadLocalRandom;
 
 public class Sandbox {
 
     private static final Logger LOG = LoggerFactory.getLogger(Sandbox.class);
 
-    private final Settings settings;
+    private final DockerConfig config;
     private final ProgrammingLang programmingLang;
     private final String code;
     private final String userInput;
 
-    private final Path tempDir;
-
-    public Sandbox(Settings settings, Integer compilerType, String code, String userInput) {
-        this.settings = settings;
+    public Sandbox(DockerConfig config, Integer compilerType, String code, String userInput) {
+        this.config = config;
         this.programmingLang = getProgrammingLang(compilerType);
         this.code = code;
         this.userInput = userInput;
 
-        this.tempDir = getTempDir();
-
-        LOG.info("Created sandbox with parameters [compiler : {}; code : {}; userInput : {}; tempDir : {}]",
-                programmingLang, code, userInput, tempDir);
+        LOG.info("Created sandbox with parameters [compiler : {}; code : {}; userInput : {}; config : {}]",
+                programmingLang, code, userInput, config);
     }
 
     public Response run() {
         prepareForCodeExecution();
 
-        Response response = new DockerCmdBuilder(settings.imageName, tempDir.toAbsolutePath())
+        Response response = new DockerCmdBuilder(config)
                 .startNewContainer()
                 .exec(String.format("/sharedDir/run.sh %s %s %s",
-                        programmingLang.getCompiler(), programmingLang.getFileName(), programmingLang.getRunner()),
-                        settings.timeout)
+                        programmingLang.getCompiler(), programmingLang.getFileName(), programmingLang.getRunner()))
                 .finishAndKill();
 
         LOG.info("Produced response {}", response);
 
-        Util.deleteDirectory(tempDir);
+        Util.deleteDirectory(config.getSharedDir());
         return response;
     }
 
     private void prepareForCodeExecution() {
         try {
-            Files.createDirectories(tempDir);
+            Files.createDirectories(config.getSharedDir());
 
-            Files.write(tempDir.resolve(programmingLang.getFileName()),
-                    //to avoid compilation error (publicClassName != fileName)
-                    code.replace("public class", "class").getBytes(),
-                    StandardOpenOption.CREATE_NEW);
+            createCodeFileInSharedDir();
 
-            Files.write(tempDir.resolve("args"),
-                    (userInput != null ? userInput : "").getBytes(),
-                    StandardOpenOption.CREATE_NEW);
+            createUserInputFileInSharedDir();
 
             copyScriptsToSharedDirectory();
 
@@ -71,22 +59,28 @@ public class Sandbox {
 
     }
 
+    private void createCodeFileInSharedDir() throws IOException {
+        Files.write(config.getSharedDir().resolve(programmingLang.getFileName()),
+                //to avoid compilation error (publicClassName != fileName)
+                code.replaceAll("public\\s+class", "class").getBytes(),
+                StandardOpenOption.CREATE_NEW);
+    }
+
+    private void createUserInputFileInSharedDir() throws IOException {
+        Files.write(config.getSharedDir().resolve("args"),
+                (userInput != null ? userInput : "").getBytes(),
+                StandardOpenOption.CREATE_NEW);
+    }
+
     private void copyScriptsToSharedDirectory() throws IOException {
         Files.list(Paths.get("src/main/resources/scripts/"))
                 .forEach(f -> {
                     try {
-                        Files.copy(f, tempDir.resolve(f.getFileName()), StandardCopyOption.COPY_ATTRIBUTES);
+                        Files.copy(f, config.getSharedDir().resolve(f.getFileName()), StandardCopyOption.COPY_ATTRIBUTES);
                     } catch (IOException e) {
-                        LOG.error("Can't copy file {} to dir {}", f, tempDir, e);
+                        LOG.error("Can't copy file {} to dir {}", f, config.getSharedDir(), e);
                     }
                 });
-    }
-
-    private Path getTempDir() {
-        ThreadLocalRandom random = ThreadLocalRandom.current();
-        return Paths.get("temp")
-                .resolve(String.valueOf(random.nextDouble())
-                        .replace(".", ""));
     }
 
     private ProgrammingLang getProgrammingLang(Integer compilerType) {
