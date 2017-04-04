@@ -28,7 +28,7 @@ public class CompileController {
                 .setImage(settings.imageName)
                 .setSharedDir(getTempDir())
                 .setTimeout(timeout == null ? settings.defaultTimeout : timeout)
-                .setRam(ram == null ? settings.defaultRam : ram)
+//                .setRam(ram == null ? settings.defaultRam : ram)
                 .build();
 
         Sandbox box = new Sandbox(config, compilerType, code, userInput);

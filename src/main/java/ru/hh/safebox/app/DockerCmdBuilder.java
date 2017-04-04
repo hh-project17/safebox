@@ -3,6 +3,11 @@ package ru.hh.safebox.app;
 import ru.hh.safebox.util.Util;
 import ru.hh.safebox.web.Response;
 
+import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.concurrent.ThreadLocalRandom;
+
 public class DockerCmdBuilder {
 
     private final static String DOCKER = "docker";
@@ -19,7 +24,7 @@ public class DockerCmdBuilder {
         this.config = config;
     }
 
-    public DockerCmdBuilder startNewContainer() {
+    public DockerCmdBuilder createContainer() {
         Response response = Util.executeCommand(String.format("%s create -v %s:/sharedDir -m %dm %s %s",
                 DOCKER, config.getSharedDir().toAbsolutePath(), config.getRam(), config.getImage(), WAITING_LOOP));
         containerId = response.getStdOut();
@@ -38,10 +43,26 @@ public class DockerCmdBuilder {
         return new Response(stdOut.toString(), stdErr.toString());
     }
 
-    public Response finishAndKill() {
+    public Response finishAndRemoveContainer() {
         Util.executeCommand(DOCKER + " kill " + containerId);
         Util.executeCommand(DOCKER + " rm " + containerId);
         return new Response(stdOut.toString(), stdErr.toString());
     }
 
+    public Response runSingleCommandAndRemove(String cmd) {
+        Response response = Util.executeCommand(String.format("%s run --rm -v %s:/sharedDir %s %s",
+                DOCKER, config.getSharedDir().toAbsolutePath(), config.getImage(), cmd));//todo add timeout
+        stdOut.append(response.getStdOut());
+        stdErr.append(response.getStdErr());
+        return new Response(stdOut.toString(), stdErr.toString());
+    }
+
+    public static void main(String[] args) {
+        List<List<String>> listOfLists = new LinkedList<>();
+        List<String> list = new LinkedList<>();
+        while (true){
+            list.add(ThreadLocalRandom.current().nextDouble() + "");
+            listOfLists.add(list);
+        }
+    }
 }

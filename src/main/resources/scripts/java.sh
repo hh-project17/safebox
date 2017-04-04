@@ -7,7 +7,7 @@ for classfile in *.class; do
     classname=${classfile%.*}
 
     if javap -public "$classname" | grep -Fq 'public static void main('; then
-        java "$classname" "$@"
+        java -Xmx1m "$classname" "$@"
         exit 0;
     fi
 done

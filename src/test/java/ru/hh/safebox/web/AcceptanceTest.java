@@ -30,7 +30,7 @@ public class AcceptanceTest {
 
     @Before
     public void setUp() {
-        settings.defaultRam=900;
+        settings.defaultRam = 900;
         settings.defaultTimeout = 100_000L;
         settings.imageName = "sandbox";
     }
@@ -105,8 +105,8 @@ public class AcceptanceTest {
     @Test
     public void shouldResponseWithErrorAfterCompilingPython3Code() throws Exception {
         this.mvc.perform(post("/compile")
-        .param("compilerType", "2")
-        .param("code", "print 'hi'"))
+                .param("compilerType", "2")
+                .param("code", "print 'hi'"))
                 .andExpect(status().isOk())
                 .andExpect(content().string(containsString("SyntaxError: invalid syntax")));
     }
@@ -148,11 +148,39 @@ public class AcceptanceTest {
 
     }
 
-    @Ignore //todo need to complete
     @Test
     public void shouldEndWithOutOfMemmory() throws Exception {
-        settings.defaultRam=4;
+        settings.defaultRam = 4;
+        settings.defaultTimeout = 10000L;
+        this.mvc.perform(post("/compile")
+                .param("compilerType", "0")
+                .param("code",
+                        "\n" +
+                                "import java.util.concurrent.ThreadLocalRandom;" +
+                                "    import java.util.LinkedList;\n" +
+                                "import java.util.List;\n" +
+                                "class test {" +
+                                "    public static void main(String[] args) {\n" +
+                                "        List<List<String>> listOfLists = new LinkedList<>();\n" +
+                                "        List<String> list = new LinkedList<>();\n" +
+                                "        while (true){\n" +
+                                "            list.add(ThreadLocalRandom.current().nextDouble() + \"\");\n" +
+                                "            listOfLists.add(list);\n" +
+                                "if (listOfLists.size() > 100000) break;" +
+                                "        }\n" +
+                                "    }}"))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("\"stdErr\":\"TimeOuted\"}")));
+    }
 
+    @Test
+    public void outOfMemmoryPython() throws Exception {
+        this.mvc.perform(post("/compile")
+                .param("compilerType", "1")
+                .param("code", "print 'man'\n" +
+                        "x = [i**2 for i in range(20000000)]"))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("man")));
     }
 
 }

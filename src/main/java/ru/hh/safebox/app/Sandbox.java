@@ -31,11 +31,13 @@ public class Sandbox {
     public Response run() {
         prepareForCodeExecution();
 
-        Response response = new DockerCmdBuilder(config)
-                .startNewContainer()
-                .exec(String.format("/sharedDir/run.sh %s %s %s",
-                        programmingLang.getCompiler(), programmingLang.getFileName(), programmingLang.getRunner()))
-                .finishAndKill();
+        Response response = new DockerCmdBuilder(config).runSingleCommandAndRemove(String.format("/sharedDir/run.sh %s %s %s",
+                programmingLang.getCompiler(), programmingLang.getFileName(), programmingLang.getRunner()));
+//                )
+//                .createContainer()
+//                .exec(String.format("/sharedDir/run.sh %s %s %s",
+//                        programmingLang.getCompiler(), programmingLang.getFileName(), programmingLang.getRunner()))
+//                .finishAndRemoveContainer();
 
         LOG.info("Produced response {}", response);
 
@@ -62,7 +64,18 @@ public class Sandbox {
     private void createCodeFileInSharedDir() throws IOException {
         Files.write(config.getSharedDir().resolve(programmingLang.getFileName()),
                 //to avoid compilation error (publicClassName != fileName)
-                code.replaceAll("public\\s+class", "class").getBytes(),
+                programmingLang == ProgrammingLang.JAVA
+                        ? code.replaceAll("public\\s+class", "class").getBytes()
+                        :
+                        (
+                                "import resource" + System.lineSeparator()
+                        + "rsrc = resource.RLIMIT_DATA" + System.lineSeparator()
+                        + "soft, hard = resource.getrlimit(rsrc)" + System.lineSeparator()
+                        + "resource.setrlimit(resource.RLIMIT_DATA, (1024, hard))"
+                        + System.lineSeparator() +
+//                        )
+//                                        (
+                                        code).getBytes(),
                 StandardOpenOption.CREATE_NEW);
     }
 
