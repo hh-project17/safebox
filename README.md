@@ -8,11 +8,11 @@
 
 Запустить сервис можно так:
 
-Перейти в корень проекта и выполнить mvn spring-boot:run 
+* Перейти в корень проекта и выполнить mvn spring-boot:run 
 
-или собрать проект с помощью mvn clean install, а дальше java -jar target/safebox-1.0.jar
+* или собрать проект с помощью mvn clean install, а дальше java -jar target/safebox-1.0.jar
 
-или через idea запустив метод main в классе Main
+* или через idea запустив метод main в классе Main
 
 Если docker начал ругаться при запуске, то скорее всего нужно выполнить команду sudo chmod 777 /var/run/docker.sock или запустить веб-сервис с правами супер пользователя
 
@@ -21,8 +21,8 @@
 * compilerType - int параметр:  java(0), python2(1), python3(2)
 * code - String параметр: код программы
 * userInput - String параметр (optional): пользовательский ввод
-* ram - ограничение по памяти
-* timeout - ограничение по времени
+* ram - ограничение по памяти, mb
+* timeout - ограничение по времени, ms
 
 Можно конфигурировать некоторые параметры в файле application.properties
 
@@ -32,17 +32,20 @@
 * defaultRam - ограничение по памяти, по умолчанию стоит 256 мб
 
 
-
 Также для работы с докером можно использовать следующие команды (выручали):
 
-\#delete all containers
+* delete all containers
+
 docker rm $(docker ps -q -f status=exited)
 
-\#stop all containers
+* stop all containers
+
 docker stop $(docker ps -q -f status=running)
 
-\#build image
+* build image
+
 docker build -t sandbox src/main/resources/docker
+
 
 Для тестирования докера можно пользоваться curl -ом, например:
 
