@@ -19,9 +19,9 @@ public class DockerCmdBuilder {
         this.config = config;
     }
 
-    public DockerCmdBuilder createContainer() {
-        Response response = Util.executeCommand(String.format("%s create -v %s:/sharedDir -m %dm %s %s",
-                DOCKER, config.getSharedDir().toAbsolutePath(), config.getRam(), config.getImage(), WAITING_LOOP));
+    public DockerCmdBuilder startNewContainer() {
+        Response response = Util.executeCommand(String.format("%s create -v %s:/sharedDir %s %s",
+                DOCKER, config.getSharedDir().toAbsolutePath(), config.getImage(), WAITING_LOOP));
         containerId = response.getStdOut();
         Util.executeCommand(DOCKER + " start " + containerId);
         return this;
@@ -44,9 +44,4 @@ public class DockerCmdBuilder {
         return new Response(stdOut.toString(), stdErr.toString());
     }
 
-    public Response runSingleCommandAndRemove(String cmd) {
-        return Util.executeCommand(String.format("%s run --rm -v %s:/sharedDir %s %s",
-                DOCKER, config.getSharedDir().toAbsolutePath(), config.getImage(), cmd),
-                config.getTimeout());
-    }
 }

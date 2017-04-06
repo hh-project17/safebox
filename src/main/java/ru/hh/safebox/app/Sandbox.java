@@ -24,11 +24,13 @@ public class Sandbox {
         prepareForCodeExecution();
 
         Response response = new DockerCmdBuilder(runConfig)
-                .runSingleCommandAndRemove(String.format("/sharedDir/run.sh %s %s %d %s",
+                .startNewContainer()
+                .exec(String.format("/sharedDir/run.sh %s %s %d %s",
                         runConfig.getProgrammingLang().getCompiler(),
                         runConfig.getProgrammingLang().getFileName(),
                         runConfig.getRam(),
-                        runConfig.getProgrammingLang().getRunner()));
+                        runConfig.getProgrammingLang().getRunner()))
+                .finishAndRemoveContainer();
 
         LOG.info("Produced response {}", response);
 
