@@ -3,24 +3,19 @@ package ru.hh.safebox.app;
 import ru.hh.safebox.util.Util;
 import ru.hh.safebox.web.Response;
 
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.concurrent.ThreadLocalRandom;
-
 public class DockerCmdBuilder {
 
     private final static String DOCKER = "docker";
     private final static String WAITING_LOOP = "sleep infinity";
 
-    private DockerConfig config;
+    private RunConfig config;
 
     private String containerId;
 
     private StringBuilder stdOut = new StringBuilder();
     private StringBuilder stdErr = new StringBuilder();
 
-    public DockerCmdBuilder(DockerConfig config) {
+    public DockerCmdBuilder(RunConfig config) {
         this.config = config;
     }
 
@@ -50,19 +45,8 @@ public class DockerCmdBuilder {
     }
 
     public Response runSingleCommandAndRemove(String cmd) {
-        Response response = Util.executeCommand(String.format("%s run --rm -v %s:/sharedDir %s %s",
-                DOCKER, config.getSharedDir().toAbsolutePath(), config.getImage(), cmd));//todo add timeout
-        stdOut.append(response.getStdOut());
-        stdErr.append(response.getStdErr());
-        return new Response(stdOut.toString(), stdErr.toString());
-    }
-
-    public static void main(String[] args) {
-        List<List<String>> listOfLists = new LinkedList<>();
-        List<String> list = new LinkedList<>();
-        while (true){
-            list.add(ThreadLocalRandom.current().nextDouble() + "");
-            listOfLists.add(list);
-        }
+        return Util.executeCommand(String.format("%s run --rm -v %s:/sharedDir %s %s",
+                DOCKER, config.getSharedDir().toAbsolutePath(), config.getImage(), cmd),
+                config.getTimeout());
     }
 }

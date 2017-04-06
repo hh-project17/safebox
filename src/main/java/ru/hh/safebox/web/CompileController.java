@@ -2,8 +2,8 @@ package ru.hh.safebox.web;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
+import ru.hh.safebox.app.RunConfig;
 import ru.hh.safebox.app.Sandbox;
-import ru.hh.safebox.app.DockerConfig;
 import ru.hh.safebox.config.Settings;
 
 import java.nio.file.Path;
@@ -24,14 +24,15 @@ public class CompileController {
                             @RequestParam(required = false) Long timeout,
                             @RequestParam(required = false) Integer ram) {
 
-        DockerConfig config = new DockerConfig.Builder()
-                .setImage(settings.imageName)
+        RunConfig runConfig = new RunConfig.Builder(compilerType, code)
+                .setUserInput(userInput != null ? userInput : "")
                 .setSharedDir(getTempDir())
-                .setTimeout(timeout == null ? settings.defaultTimeout : timeout)
-//                .setRam(ram == null ? settings.defaultRam : ram)
+                .setImage(settings.imageName)
+                .setTimeout(timeout != null ? timeout : settings.defaultTimeout)
+                .setRam(ram != null ? ram : settings.defaultRam)
                 .build();
 
-        Sandbox box = new Sandbox(config, compilerType, code, userInput);
+        Sandbox box = new Sandbox(runConfig);
         return box.run();
     }
 

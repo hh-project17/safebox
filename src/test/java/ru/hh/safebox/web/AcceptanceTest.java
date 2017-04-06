@@ -1,7 +1,6 @@
 package ru.hh.safebox.web;
 
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,8 +29,8 @@ public class AcceptanceTest {
 
     @Before
     public void setUp() {
-        settings.defaultRam = 900;
-        settings.defaultTimeout = 100_000L;
+        settings.defaultRam = 1000;
+        settings.defaultTimeout = 10_000L;
         settings.imageName = "sandbox";
     }
 
@@ -135,52 +134,66 @@ public class AcceptanceTest {
 
     @Test
     public void shouldEndWithTimeOut() throws Exception {
-        settings.defaultTimeout = 1000L;
         this.mvc.perform(post("/compile")
                 .param("compilerType", "0")
+                .param("timeout", "1000")
                 .param("code", "class time {\n" +
                         "    public static void main(String[] args) throws InterruptedException {\n" +
                         "        Thread.sleep(5_000);\n" +
                         "    }\n" +
                         "}"))
                 .andExpect(status().isOk())
-                .andExpect(content().string(containsString("\"stdErr\":\"TimeOuted\"}")));
+                .andExpect(content().string(containsString("\"stdOut\":\"Timeout Error\"")));
 
     }
 
     @Test
     public void shouldEndWithOutOfMemmory() throws Exception {
-        settings.defaultRam = 4;
-        settings.defaultTimeout = 10000L;
         this.mvc.perform(post("/compile")
                 .param("compilerType", "0")
                 .param("code",
-                        "\n" +
-                                "import java.util.concurrent.ThreadLocalRandom;" +
-                                "    import java.util.LinkedList;\n" +
-                                "import java.util.List;\n" +
-                                "class test {" +
-                                "    public static void main(String[] args) {\n" +
-                                "        List<List<String>> listOfLists = new LinkedList<>();\n" +
-                                "        List<String> list = new LinkedList<>();\n" +
-                                "        while (true){\n" +
-                                "            list.add(ThreadLocalRandom.current().nextDouble() + \"\");\n" +
-                                "            listOfLists.add(list);\n" +
-                                "if (listOfLists.size() > 100000) break;" +
+                        "public class Test {\n" +
+                                "    public static void main(String[] args) throws Exception {\n" +
+                                "        Test memoryTest = new Test();\n" +
+                                "        memoryTest.generateOOM();\n" +
+                                "    }\n" +
+                                "\n" +
+                                "    public void generateOOM() throws Exception {\n" +
+                                "        int iteratorValue = 20;\n" +
+                                "        for (int outerIterator = 1; outerIterator < 20; outerIterator++) {\n" +
+                                "            int loop1 = 2;\n" +
+                                "            int[] memoryFillIntVar = new int[iteratorValue];\n" +
+                                "            do {\n" +
+                                "                memoryFillIntVar[loop1] = 0;\n" +
+                                "                loop1--;\n" +
+                                "            } while (loop1 > 0);\n" +
+                                "            iteratorValue = iteratorValue * 5;\n" +
                                 "        }\n" +
-                                "    }}"))
+                                "    }\n" +
+                                "}"))
                 .andExpect(status().isOk())
-                .andExpect(content().string(containsString("\"stdErr\":\"TimeOuted\"}")));
+                .andExpect(content().string(containsString("Memory Error")));
     }
 
     @Test
-    public void outOfMemmoryPython() throws Exception {
+    public void shouldEndWithOutOfMemoryPython() throws Exception {
         this.mvc.perform(post("/compile")
                 .param("compilerType", "1")
+                .param("ram", "1")
                 .param("code", "print 'man'\n" +
-                        "x = [i**2 for i in range(20000000)]"))
+                        "x = [i**2 for i in range(2000000)]"))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("Memory Error")));
+    }
+
+    @Test
+    public void shouldEndNormally() throws Exception {
+        this.mvc.perform(post("/compile")
+                .param("compilerType", "1")
+                .param("ram", "1000")
+                .param("code", "print 'man'\n" +
+                        "x = [i**2 for i in range(2000000)]"))
                 .andExpect(status().isOk())
                 .andExpect(content().string(containsString("man")));
     }
-
 }

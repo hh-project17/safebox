@@ -52,7 +52,10 @@ public class Util {
         }
 
         if (!finished) {
-            err.append("TimeOuted");
+            output.append("Timeout Error");
+        }
+        if (err.toString().contains("MemoryError")){
+            output = new StringBuilder("Memory Error");
         }
 
         return new Response(output.toString().trim(), err.toString().trim());

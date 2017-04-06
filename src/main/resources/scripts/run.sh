@@ -2,14 +2,15 @@
 
 compiler=$1
 code=$2
-javaRunner=$3
+javaHeapLim=$3
+javaRunner=$4
 
 if [ "$javaRunner" = "" ]; then
     $compiler /sharedDir/"$code" < $"/sharedDir/args"
 else
 	if $compiler /sharedDir/"$code"; then
-	    $javaRunner < $"/sharedDir/args"
+	    $javaRunner $javaHeapLim < $"/sharedDir/args"
 	else
-	    echo "Compilation Failed"
+	    echo "Compilation Error"
 	fi
 fi
