@@ -29,7 +29,8 @@ public class AcceptanceTest {
 
     @Before
     public void setUp() {
-        settings.timeout = 100_000L;
+        settings.defaultRam = 1000;
+        settings.defaultTimeout = 10_000L;
         settings.imageName = "sandbox";
     }
 
@@ -51,7 +52,7 @@ public class AcceptanceTest {
         this.mvc.perform(post("/compile")
                 .param("compilerType", "0")
                 .param("code", "import java.util.Scanner;\n" +
-                        "public class qwe {\n" +
+                        "public    class qwe {\n" +
                         "    public static void main(String[] args) {\n" +
                         "        Scanner r = new Scanner(System.in);\n" +
                         "        System.out.println(r.nextInt());\n" +
@@ -103,8 +104,8 @@ public class AcceptanceTest {
     @Test
     public void shouldResponseWithErrorAfterCompilingPython3Code() throws Exception {
         this.mvc.perform(post("/compile")
-        .param("compilerType", "2")
-        .param("code", "print 'hi'"))
+                .param("compilerType", "2")
+                .param("code", "print 'hi'"))
                 .andExpect(status().isOk())
                 .andExpect(content().string(containsString("SyntaxError: invalid syntax")));
     }
@@ -133,17 +134,66 @@ public class AcceptanceTest {
 
     @Test
     public void shouldEndWithTimeOut() throws Exception {
-        settings.timeout = 1000L;
         this.mvc.perform(post("/compile")
                 .param("compilerType", "0")
+                .param("timeout", "1000")
                 .param("code", "class time {\n" +
                         "    public static void main(String[] args) throws InterruptedException {\n" +
                         "        Thread.sleep(5_000);\n" +
                         "    }\n" +
                         "}"))
                 .andExpect(status().isOk())
-                .andExpect(content().string(containsString("\"stdErr\":\"TimeOuted\"}")));
+                .andExpect(content().string(containsString("\"stdOut\":\"Timeout Error\"")));
 
     }
 
+    @Test
+    public void shouldEndWithOutOfMemmory() throws Exception {
+        this.mvc.perform(post("/compile")
+                .param("compilerType", "0")
+                .param("code",
+                        "public class Test {\n" +
+                                "    public static void main(String[] args) throws Exception {\n" +
+                                "        Test memoryTest = new Test();\n" +
+                                "        memoryTest.generateOOM();\n" +
+                                "    }\n" +
+                                "\n" +
+                                "    public void generateOOM() throws Exception {\n" +
+                                "        int iteratorValue = 20;\n" +
+                                "        for (int outerIterator = 1; outerIterator < 20; outerIterator++) {\n" +
+                                "            int loop1 = 2;\n" +
+                                "            int[] memoryFillIntVar = new int[iteratorValue];\n" +
+                                "            do {\n" +
+                                "                memoryFillIntVar[loop1] = 0;\n" +
+                                "                loop1--;\n" +
+                                "            } while (loop1 > 0);\n" +
+                                "            iteratorValue = iteratorValue * 5;\n" +
+                                "        }\n" +
+                                "    }\n" +
+                                "}"))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("Memory Error")));
+    }
+
+    @Test
+    public void shouldEndWithOutOfMemoryPython() throws Exception {
+        this.mvc.perform(post("/compile")
+                .param("compilerType", "1")
+                .param("ram", "1")
+                .param("code", "print 'man'\n" +
+                        "x = [i**2 for i in range(2000000)]"))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("Memory Error")));
+    }
+
+    @Test
+    public void shouldEndNormally() throws Exception {
+        this.mvc.perform(post("/compile")
+                .param("compilerType", "1")
+                .param("ram", "1000")
+                .param("code", "print 'man'\n" +
+                        "x = [i**2 for i in range(2000000)]"))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("man")));
+    }
 }

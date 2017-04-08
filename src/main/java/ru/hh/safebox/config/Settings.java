@@ -6,10 +6,13 @@ import org.springframework.stereotype.Component;
 @Component
 public class Settings {
 
-    @Value("${timeout}")
-    public Long timeout;
-
     @Value("${imageName}")
     public String imageName;
+
+    @Value("${defaultTimeout}")
+    public Long defaultTimeout;
+
+    @Value("${defaultRam}")
+    public Integer defaultRam;
 
 }
