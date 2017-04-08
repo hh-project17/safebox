@@ -3,3 +3,7 @@ target/
 *.iml
 temp/
 *.log
+
+.settings/
+.classpath
+.project
