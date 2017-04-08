@@ -89,6 +89,34 @@
                 </executions>
             </plugin>
 
+            <plugin>
+                <artifactId>jdeb</artifactId>
+                <groupId>org.vafer</groupId>
+                <version>1.5</version>
+                <executions>
+                    <execution>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>jdeb</goal>
+                        </goals>
+                        <configuration>
+                            <controlDir>${basedir}/deb/control</controlDir>
+                            <dataSet>
+                                <data>
+                                    <src>${project.build.directory}/${project.build.finalName}.jar</src>
+                                    <type>file</type>
+                                    <mapper>
+                                        <type>perm</type>
+                                        <prefix>/var/${build.finalName}</prefix>
+                                        <filemode>755</filemode>
+                                    </mapper>
+                                </data>
+                            </dataSet>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+
         </plugins>
     </build>
 
