@@ -5,4 +5,4 @@ Priority: optional
 Architecture: all
 Description: web-service for code compiling
 Maintainer: Vorobev Ivan <vorobey92@yandex.ru>
-Depends: oracle-java8-installer | openjdk-8-jre | docker.io
+Depends: oracle-java8-installer, openjdk-8-jre, docker.io

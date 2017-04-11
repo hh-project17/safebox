@@ -84,6 +84,7 @@
                         <configuration>
                             <dataSet>
 
+                                <!--Target dir of jar (prefix)-->
                                 <data>
                                     <src>${project.build.directory}/${build.finalName}.jar</src>
                                     <type>file</type>
@@ -94,6 +95,7 @@
                                     </mapper>
                                 </data>
 
+                                <!--To create service in /etc/init.d-->
                                 <data>
                                     <type>link</type>
                                     <symlink>true</symlink>
