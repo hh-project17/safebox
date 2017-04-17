@@ -53,6 +53,7 @@ public class Util {
 
         if (!finished) {
             output.append("Timeout Error");
+            err.append("Timeout Error");
         }
         if (err.toString().contains("MemoryError")){
             output = new StringBuilder("Memory Error");
