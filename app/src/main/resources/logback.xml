@@ -13,9 +13,10 @@
         </encoder>
     </appender>
 
-    <logger name="ru.hh.safebox">
-        <appender-ref ref="file"/>
-    </logger>
+    <!--after packaging to debian, logs writes to /var/log/safebox.log -->
+    <!--<logger name="ru.hh.safebox">-->
+        <!--<appender-ref ref="file"/>-->
+    <!--</logger>-->
 
     <root level="info">
         <appender-ref ref="console"/>

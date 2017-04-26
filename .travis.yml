@@ -4,7 +4,7 @@ services:
   - docker
 
 before_install:
-  - docker build -t sandbox src/main/resources/docker
+  - docker pull vorobey92/sandbox
 
 script: "mvn cobertura:cobertura"
 
