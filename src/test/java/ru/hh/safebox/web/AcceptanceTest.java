@@ -196,4 +196,15 @@ public class AcceptanceTest {
                 .andExpect(status().isOk())
                 .andExpect(content().string(containsString("man")));
     }
+
+    @Test
+    public void shouldEndWithInternalErrorPython() throws Exception {
+        this.mvc.perform(post("/compile")
+                .param("compilerType", "1")
+                .param("ram", "1000")
+                .param("code", "import sys\n" +
+                        "sys.exit(125)"))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("Internal Error")));
+    }
 }

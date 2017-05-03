@@ -19,7 +19,7 @@ public class DockerCmdBuilder {
     private StringBuilder stdOut = new StringBuilder();
     private StringBuilder stdErr = new StringBuilder();
 
-    private boolean correct = true;
+    private boolean dockerError = false;
 
     public DockerCmdBuilder(RunConfig config) {
         this.config = config;
@@ -34,7 +34,7 @@ public class DockerCmdBuilder {
         stdErr.append(response.getStdErr());
         if (stdErr.length() > 0) {
             LOG.error("Error while trying to start docker = {}", stdErr.toString());
-            correct = false;
+            dockerError = true;
         }
         return this;
     }
@@ -47,7 +47,7 @@ public class DockerCmdBuilder {
     }
 
     public Response finish() {
-        if (!correct) {
+        if (dockerError) {
             stdOut  = new StringBuilder("Internal Error");
         }
         return new Response(stdOut.toString(), stdErr.toString());
