@@ -7,7 +7,7 @@ import ru.hh.safebox.web.Response;
 
 public class DockerCmdBuilder {
 
-    private static final Logger LOG = LoggerFactory.getLogger(Util.class);
+    private static final Logger LOG = LoggerFactory.getLogger(DockerCmdBuilder.class);
 
     private final static String DOCKER = "docker";
     private final static String WAITING_LOOP = "sleep infinity";

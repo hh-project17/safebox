@@ -36,7 +36,9 @@ public class Util {
             } else {
                 finished = p.waitFor(timeout, TimeUnit.MILLISECONDS);
             }
-            exitVal = p.exitValue();
+            if (finished) {
+                exitVal = p.exitValue();
+            }
 
             try (BufferedReader stdOutReader =
                          new BufferedReader(new InputStreamReader(p.getInputStream()));
@@ -58,15 +60,13 @@ public class Util {
             output = new StringBuilder("Internal Error");
         }
 
-        if (!finished) {
-            output.append("Timeout Error");
-        }
         if (DOCKER_ERRORS.contains(exitVal)) {
             LOG.error("Error while executing command = {}. Bad exit code {}", command, exitVal);
             output = new StringBuilder("Internal Error");
-        }
-        if (err.toString().contains("MemoryError")){
+        } else if (err.toString().contains("MemoryError")){
             output = new StringBuilder("Memory Error");
+        } else if (!finished) {
+            output.append("Timeout Error");
         }
 
         return new Response(output.toString().trim(), err.toString().trim());
