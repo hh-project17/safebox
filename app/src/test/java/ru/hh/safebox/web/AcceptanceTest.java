@@ -31,7 +31,7 @@ public class AcceptanceTest {
     public void setUp() {
         settings.defaultRam = 1000;
         settings.defaultTimeout = 10_000L;
-        settings.imageName = "sandbox";
+        settings.imageName = "vorobey92/sandbox";
     }
 
     @Test
@@ -107,7 +107,7 @@ public class AcceptanceTest {
                 .param("compilerType", "2")
                 .param("code", "print 'hi'"))
                 .andExpect(status().isOk())
-                .andExpect(content().string(containsString("SyntaxError: invalid syntax")));
+                .andExpect(content().string(containsString("SyntaxError: Missing parentheses")));
     }
 
     @Test

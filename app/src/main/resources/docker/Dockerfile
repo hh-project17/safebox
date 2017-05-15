@@ -1,12 +1,14 @@
 # Pull base image.
-FROM chug/ubuntu14.04x64
+FROM ubuntu:14.04
+
+RUN apt-get update
+
+#prepare for Java download
+RUN apt-get install -y software-properties-common
+RUN apt-get install -y python-software-properties
 
 # Install Python
 RUN apt-get install -y python
-
-#prepare for Java download
-RUN apt-get install -y python-software-properties
-RUN apt-get install -y software-properties-common
 
 # Install Java.
 RUN \
