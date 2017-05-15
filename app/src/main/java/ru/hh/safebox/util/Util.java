@@ -12,16 +12,21 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 public class Util {
 
     private static final Logger LOG = LoggerFactory.getLogger(Util.class);
+    private static final Set<Integer> DOCKER_ERRORS = new HashSet<>(Arrays.asList(125, 126, 127));
 
     public static Response executeCommand(String command, long timeout) {
         LOG.info("Command '{}' called", command);
         StringBuilder output = new StringBuilder();
         StringBuilder err = new StringBuilder();
+        int exitVal = 0;
         boolean finished = false;
         try {
             Process p = Runtime.getRuntime().exec(command);
@@ -30,6 +35,9 @@ public class Util {
                 finished = true;
             } else {
                 finished = p.waitFor(timeout, TimeUnit.MILLISECONDS);
+            }
+            if (finished) {
+                exitVal = p.exitValue();
             }
 
             try (BufferedReader stdOutReader =
@@ -49,14 +57,16 @@ public class Util {
             }
         } catch (IOException | InterruptedException e) {
             LOG.error("Error while executing command = {}", command, e);
+            output = new StringBuilder("Internal Error");
         }
 
-        if (!finished) {
-            output.append("Timeout Error");
-            err.append("Timeout Error");
-        }
-        if (err.toString().contains("MemoryError")){
+        if (DOCKER_ERRORS.contains(exitVal)) {
+            LOG.error("Error while executing command = {}. Bad exit code {}", command, exitVal);
+            output = new StringBuilder("Internal Error");
+        } else if (err.toString().contains("MemoryError")){
             output = new StringBuilder("Memory Error");
+        } else if (!finished) {
+            output.append("Timeout Error");
         }
 
         return new Response(output.toString().trim(), err.toString().trim());
